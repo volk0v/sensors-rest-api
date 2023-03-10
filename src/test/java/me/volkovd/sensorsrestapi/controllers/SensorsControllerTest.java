@@ -16,13 +16,13 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.validation.Errors;
 
 import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -77,6 +77,31 @@ class SensorsControllerTest {
                 .andExpectAll(
                         jsonPath("$.errors[0].fieldName", is("name")),
                         jsonPath("$.errors[0].error", is("Name should be between 3 and 30 characters")),
+                        jsonPath("$", hasKey("timestamp"))
+                );
+
+        verify(service, times(0)).save(any());
+    }
+
+    @Test
+    public void givenExistingSensorName_whenPostRegistration_thenReturnError() throws Exception {
+        String name = "test";
+        SensorDTO sensorDTO = new SensorDTO(name);
+        String requestBody = new ObjectMapper().writeValueAsString(sensorDTO);
+
+        doAnswer(invocationOnMock -> {
+            Errors errors = invocationOnMock.getArgument(1);
+            errors.rejectValue("name", "", "Sensor with the name already exists");
+            return null;
+        }).when(validator).validate(any(), any());
+
+        mvc.perform(post("/sensors/registration")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isBadRequest())
+                .andExpectAll(
+                        jsonPath("$.errors[0].fieldName", is("name")),
+                        jsonPath("$.errors[0].error", is("Sensor with the name already exists")),
                         jsonPath("$", hasKey("timestamp"))
                 );
 
