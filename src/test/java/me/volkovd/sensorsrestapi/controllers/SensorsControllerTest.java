@@ -17,11 +17,14 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.hamcrest.Matchers.hasKey;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(SensorsController.class)
@@ -60,6 +63,24 @@ class SensorsControllerTest {
                 .andExpect(status().isOk());
 
         verify(service, times(1)).save(any());
+    }
+
+    @Test
+    public void givenWrongRequest_whenPostRegistration_thenReturnError() throws Exception {
+        SensorDTO sensorDTO = new SensorDTO("a");
+        String requestBody = new ObjectMapper().writeValueAsString(sensorDTO);
+
+        mvc.perform(post("/sensors/registration")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isBadRequest())
+                .andExpectAll(
+                        jsonPath("$.errors[0].fieldName", is("name")),
+                        jsonPath("$.errors[0].error", is("Name should be between 3 and 30 characters")),
+                        jsonPath("$", hasKey("timestamp"))
+                );
+
+        verify(service, times(0)).save(any());
     }
 
 }
