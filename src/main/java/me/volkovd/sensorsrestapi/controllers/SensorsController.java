@@ -5,14 +5,12 @@ import me.volkovd.sensorsrestapi.exceptions.sensors.SensorNotRegisteredException
 import me.volkovd.sensorsrestapi.mapper.SensorMapper;
 import me.volkovd.sensorsrestapi.models.Sensor;
 import me.volkovd.sensorsrestapi.services.SensorsService;
+import me.volkovd.sensorsrestapi.utils.FieldsErrorsResponse;
 import me.volkovd.sensorsrestapi.validators.SensorValidator;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
@@ -44,6 +42,16 @@ public class SensorsController {
         service.save(sensor);
 
         return ResponseEntity.ok(HttpStatus.OK);
+    }
+
+    @ExceptionHandler
+    private ResponseEntity<FieldsErrorsResponse> handleException(SensorNotRegisteredException exception) {
+        FieldsErrorsResponse response = new FieldsErrorsResponse(
+                exception.getErrors(),
+                System.currentTimeMillis()
+        );
+
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
 }
