@@ -2,13 +2,12 @@ package me.volkovd.sensorsrestapi.dto;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.Objects;
 
 public class MeasurementDTO {
 
-    @NotEmpty(message = "Value field can't be empty")
+    @NotNull(message = "Value field can't be null")
     @Min(value = -100, message = "Value should be between -100 and 100")
     @Max(value = 100, message = "Value should be between -100 and 100")
     private float value;
