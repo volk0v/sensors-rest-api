@@ -24,6 +24,11 @@ public class SensorsService {
     }
 
     @Transactional(readOnly = true)
+    public boolean existsByName(String name) {
+        return sensorsRepository.findByName(name).isPresent();
+    }
+
+    @Transactional(readOnly = true)
     public List<Sensor> findAll() {
         return sensorsRepository.findAll();
     }
