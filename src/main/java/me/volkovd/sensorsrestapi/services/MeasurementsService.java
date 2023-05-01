@@ -1,6 +1,8 @@
 package me.volkovd.sensorsrestapi.services;
 
+import me.volkovd.sensorsrestapi.exceptions.measurements.MeasurementNotAddedException;
 import me.volkovd.sensorsrestapi.models.Measurement;
+import me.volkovd.sensorsrestapi.models.Sensor;
 import me.volkovd.sensorsrestapi.repositories.MeasurementsRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,9 +14,11 @@ import java.util.Optional;
 public class MeasurementsService {
 
     private final MeasurementsRepository measurementRepository;
+    private final SensorsService sensorsService;
 
-    public MeasurementsService(MeasurementsRepository measurementRepository) {
+    public MeasurementsService(MeasurementsRepository measurementRepository, SensorsService sensorsService) {
         this.measurementRepository = measurementRepository;
+        this.sensorsService = sensorsService;
     }
 
     @Transactional(readOnly = true)
@@ -29,6 +33,11 @@ public class MeasurementsService {
 
     @Transactional
     public void save(Measurement measurement) {
+        String sensorName = measurement.getSensor().getName();
+        Sensor sensor = sensorsService.findByName(sensorName).orElseThrow(() -> new MeasurementNotAddedException("Sensor with the name doesn't exist!"));
+
+        measurement.setSensor(sensor);
+
         measurementRepository.save(measurement);
     }
 
