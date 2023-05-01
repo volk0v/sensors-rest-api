@@ -3,6 +3,7 @@ package me.volkovd.sensorsrestapi.dto;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.util.Objects;
 
 public class MeasurementDTO {
@@ -15,7 +16,7 @@ public class MeasurementDTO {
     @NotEmpty(message = "Raining field can't be empty")
     private boolean raining;
 
-    @NotEmpty(message = "Sensor can't be empty")
+    @NotNull(message = "Sensor can't be null")
     private SensorDTO sensor;
 
     public MeasurementDTO() {
