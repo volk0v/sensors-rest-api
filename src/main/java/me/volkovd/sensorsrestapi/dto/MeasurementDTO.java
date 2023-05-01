@@ -13,7 +13,7 @@ public class MeasurementDTO {
     @Max(value = 100, message = "Value should be between -100 and 100")
     private float value;
 
-    @NotEmpty(message = "Raining field can't be empty")
+    @NotNull(message = "Raining field can't be null")
     private boolean raining;
 
     @NotNull(message = "Sensor can't be null")
