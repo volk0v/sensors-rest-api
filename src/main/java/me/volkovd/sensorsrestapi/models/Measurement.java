@@ -19,6 +19,7 @@ public class Measurement {
     private boolean raining;
 
     @ManyToOne
+    @JoinColumn(name = "sensor_id")
     private Sensor sensor;
 
     public Measurement() {
