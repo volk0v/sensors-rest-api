@@ -18,6 +18,9 @@ public class MeasurementDTO {
     @NotEmpty(message = "Sensor can't be empty")
     private SensorDTO sensor;
 
+    public MeasurementDTO() {
+    }
+
     public MeasurementDTO(float value, boolean raining, SensorDTO sensor) {
         this.value = value;
         this.raining = raining;
