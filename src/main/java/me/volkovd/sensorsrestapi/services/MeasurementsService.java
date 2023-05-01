@@ -7,6 +7,7 @@ import me.volkovd.sensorsrestapi.repositories.MeasurementsRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,6 +38,8 @@ public class MeasurementsService {
         Sensor sensor = sensorsService.findByName(sensorName).orElseThrow(() -> new MeasurementNotAddedException("Sensor with the name doesn't exist!"));
 
         measurement.setSensor(sensor);
+
+        measurement.setCreatedAt(LocalDateTime.now());
 
         measurementRepository.save(measurement);
     }
