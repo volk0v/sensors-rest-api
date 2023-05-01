@@ -10,10 +10,10 @@ public class MeasurementDTO {
     @NotNull(message = "Value field can't be null")
     @Min(value = -100, message = "Value should be between -100 and 100")
     @Max(value = 100, message = "Value should be between -100 and 100")
-    private float value;
+    private Float value;
 
     @NotNull(message = "Raining field can't be null")
-    private boolean raining;
+    private Boolean raining;
 
     @NotNull(message = "Sensor can't be null")
     private SensorDTO sensor;
@@ -21,25 +21,25 @@ public class MeasurementDTO {
     public MeasurementDTO() {
     }
 
-    public MeasurementDTO(float value, boolean raining, SensorDTO sensor) {
+    public MeasurementDTO(Float value, Boolean raining, SensorDTO sensor) {
         this.value = value;
         this.raining = raining;
         this.sensor = sensor;
     }
 
-    public float getValue() {
+    public Float getValue() {
         return value;
     }
 
-    public void setValue(float value) {
+    public void setValue(Float value) {
         this.value = value;
     }
 
-    public boolean isRaining() {
+    public Boolean isRaining() {
         return raining;
     }
 
-    public void setRaining(boolean raining) {
+    public void setRaining(Boolean raining) {
         this.raining = raining;
     }
 
