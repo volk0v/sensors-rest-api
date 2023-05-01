@@ -10,6 +10,8 @@ import me.volkovd.sensorsrestapi.validators.MeasurementValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -18,12 +20,17 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultMatcher;
+import org.springframework.validation.Errors;
 
+import java.util.stream.Stream;
+
+import static org.hamcrest.Matchers.hasKey;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(MeasurementsController.class)
@@ -49,6 +56,15 @@ class MeasurementsControllerTest {
             MeasurementDTO dto = invocationOnMock.getArgument(0);
             return new ModelMapper().map(dto, Measurement.class);
         });
+
+        doAnswer(onMock -> {
+            Measurement measurement = onMock.getArgument(0);
+            if (measurement.getSensor() == null || !measurement.getSensor().getName().equals("WRONG")) return null;
+
+            Errors errors = onMock.getArgument(1);
+            errors.rejectValue("sensor", "", "Sensor with the name doesn't exist!");
+            return null;
+        }).when(validator).validate(any(), any());
     }
 
     @Test
@@ -62,6 +78,43 @@ class MeasurementsControllerTest {
                 .andExpect(status().isOk());
 
         verify(service, times(1)).save(any());
+    }
+
+    @ParameterizedTest
+    @MethodSource("wrongRequestsProvider")
+    public void givenWrongField_whenPostAdd_thenReturnError(WrongRequest errorRequest) throws Exception {
+        mvc.perform(post("/measurements/add")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(errorRequest.getBody()))
+                .andExpect(status().isBadRequest())
+                .andExpectAll(
+                        hasErrorForField(errorRequest.getField(), errorRequest.getError()),
+                        jsonPath("$", hasKey("timestamp"))
+                );
+
+        verify(service, times(0)).save(any());
+    }
+
+    private static Stream<WrongRequest> wrongRequestsProvider() {
+        return Stream.of(
+                new WrongRequest("{\"value\": 1000,\"raining\":false,\"sensor\": {\"name\": \"CORRECT\"}}",
+                        "value", "Value should be between -100 and 100"),
+                new WrongRequest("{\"raining\":false,\"sensor\": {\"name\": \"CORRECT\"}}",
+                        "value", "Value field can't be null"),
+                new WrongRequest("{\"value\": 24.7,\"sensor\": {\"name\": \"CORRECT\"}}",
+                        "raining", "Raining field can't be null"),
+                new WrongRequest("{\"value\": 24.7,\"raining\":false}",
+                        "sensor", "Sensor can't be null"),
+                new WrongRequest("{\"value\": 24.7,\"raining\":false,\"sensor\": {\"name\": \"WRONG\"}}",
+                        "sensor", "Sensor with the name doesn't exist!")
+        );
+    }
+
+    private ResultMatcher hasErrorForField(String fieldName, String error) {
+        return result -> {
+            jsonPath("$.errors[?(@.fieldName == '" + fieldName + "')].fieldName").value(fieldName).match(result);
+            jsonPath("$.errors[?(@.fieldName == '" + fieldName + "')].error").value(error).match(result);
+        };
     }
 
 }
