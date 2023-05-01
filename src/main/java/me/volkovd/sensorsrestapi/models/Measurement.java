@@ -1,6 +1,7 @@
 package me.volkovd.sensorsrestapi.models;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Entity
@@ -17,6 +18,9 @@ public class Measurement {
 
     @Column(name = "raining")
     private boolean raining;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 
     @ManyToOne
     @JoinColumn(name = "sensor_id")
@@ -55,6 +59,14 @@ public class Measurement {
         this.raining = raining;
     }
 
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
     public Sensor getSensor() {
         return sensor;
     }
@@ -68,12 +80,12 @@ public class Measurement {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Measurement that = (Measurement) o;
-        return id == that.id && Float.compare(that.value, value) == 0 && raining == that.raining && Objects.equals(sensor, that.sensor);
+        return id == that.id && Float.compare(that.value, value) == 0 && raining == that.raining && Objects.equals(createdAt, that.createdAt) && Objects.equals(sensor, that.sensor);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, value, raining, sensor);
+        return Objects.hash(id, value, raining, createdAt, sensor);
     }
 
     @Override
@@ -82,6 +94,7 @@ public class Measurement {
                 "id=" + id +
                 ", value=" + value +
                 ", raining=" + raining +
+                ", createdAt=" + createdAt +
                 ", sensor=" + sensor +
                 '}';
     }
