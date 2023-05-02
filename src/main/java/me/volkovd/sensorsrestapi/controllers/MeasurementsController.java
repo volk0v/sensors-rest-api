@@ -2,7 +2,6 @@ package me.volkovd.sensorsrestapi.controllers;
 
 import me.volkovd.sensorsrestapi.dto.MeasurementDTO;
 import me.volkovd.sensorsrestapi.exceptions.measurements.MeasurementNotAddedException;
-import me.volkovd.sensorsrestapi.exceptions.sensors.SensorNotRegisteredException;
 import me.volkovd.sensorsrestapi.mapper.MeasurementMapper;
 import me.volkovd.sensorsrestapi.models.Measurement;
 import me.volkovd.sensorsrestapi.services.MeasurementsService;
@@ -14,6 +13,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 
 @RestController
 @RequestMapping("/measurements")
@@ -43,6 +43,11 @@ public class MeasurementsController {
         service.save(measurement);
 
         return ResponseEntity.ok(HttpStatus.OK);
+    }
+
+    @GetMapping
+    public List<Measurement> get() {
+        return service.findAll();
     }
 
     @ExceptionHandler
