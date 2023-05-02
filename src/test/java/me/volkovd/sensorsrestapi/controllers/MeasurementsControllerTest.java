@@ -5,6 +5,7 @@ import me.volkovd.sensorsrestapi.dto.MeasurementDTO;
 import me.volkovd.sensorsrestapi.dto.SensorDTO;
 import me.volkovd.sensorsrestapi.mapper.MeasurementMapper;
 import me.volkovd.sensorsrestapi.models.Measurement;
+import me.volkovd.sensorsrestapi.models.Sensor;
 import me.volkovd.sensorsrestapi.services.MeasurementsService;
 import me.volkovd.sensorsrestapi.validators.MeasurementValidator;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,12 +24,17 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.validation.Errors;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.hasKey;
+import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -95,6 +101,44 @@ class MeasurementsControllerTest {
         verify(service, times(0)).save(any());
     }
 
+    @Test
+    public void givenThreeMeasurements_whenGetAll_thenReturnJson() throws Exception {
+        givenThreeMeasurementsInDatabase();
+        mockMapperToMapDTOsList();
+
+        mvc.perform(get("/measurements/"))
+                .andExpect(status().isOk())
+                .andExpectAll(
+                        jsonPath("$", hasSize(3)),
+                        checkJsonOfMeasurement(24.7f, true, "House"),
+                        checkJsonOfMeasurement(-24.7f, false, "Street"),
+                        checkJsonOfMeasurement(0f, false, "Underground")
+                );
+    }
+
+    private void givenThreeMeasurementsInDatabase() {
+        Measurement measurement1 = new Measurement(24.7f, true, new Sensor("House"));
+        Measurement measurement2 = new Measurement(-24.7f, false, new Sensor("Street"));
+        Measurement measurement3 = new Measurement(0f, false, new Sensor("Underground"));
+
+        doAnswer(onMock -> Arrays.asList(measurement1, measurement2, measurement3))
+                .when(service).findAll();
+    }
+
+    private void mockMapperToMapDTOsList() {
+        given(mapper.toListOfDTOs(any())).willAnswer(invocationOnMock -> {
+            List<Measurement> models = invocationOnMock.getArgument(0);
+            List<MeasurementDTO> result = new ArrayList<>();
+
+            ModelMapper mapper = new ModelMapper();
+            for (Measurement measurement : models) {
+                result.add(mapper.map(measurement, MeasurementDTO.class));
+            }
+
+            return result;
+        });
+    }
+
     private static Stream<WrongRequest> wrongRequestsProvider() {
         return Stream.of(
                 new WrongRequest("{\"value\": 1000,\"raining\":false,\"sensor\": {\"name\": \"CORRECT\"}}",
@@ -108,6 +152,13 @@ class MeasurementsControllerTest {
                 new WrongRequest("{\"value\": 24.7,\"raining\":false,\"sensor\": {\"name\": \"WRONG\"}}",
                         "sensor", "Sensor with the name doesn't exist!")
         );
+    }
+
+    private ResultMatcher checkJsonOfMeasurement(float value, boolean raining, String sensorName) {
+        return result -> {
+            jsonPath("$[?(@.value == " + value + ")].raining").value(raining).match(result);
+            jsonPath("$[?(@.value == " + value + ")].sensor.name").value(sensorName).match(result);
+        };
     }
 
     private ResultMatcher hasErrorForField(String fieldName, String error) {
