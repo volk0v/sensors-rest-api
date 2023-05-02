@@ -46,8 +46,8 @@ public class MeasurementsController {
     }
 
     @GetMapping
-    public List<Measurement> get() {
-        return service.findAll();
+    public List<MeasurementDTO> get() {
+        return mapper.toListOfDTOs(service.findAll());
     }
 
     @ExceptionHandler
