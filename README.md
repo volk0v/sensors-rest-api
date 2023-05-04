@@ -118,3 +118,13 @@ Example of the response:
   }
 ]
 ```
+
+### GET `/measurements/rainy-days-amount/`
+
+Returns amount of rainy days based on measurements in the database.
+
+Example of the response:
+
+```json
+5
+```
