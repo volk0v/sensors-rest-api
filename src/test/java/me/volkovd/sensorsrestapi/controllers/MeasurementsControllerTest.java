@@ -30,8 +30,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static org.hamcrest.Matchers.hasKey;
-import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
@@ -115,6 +114,15 @@ class MeasurementsControllerTest {
                         checkJsonOfMeasurement(-24.7f, false, "Street"),
                         checkJsonOfMeasurement(0f, false, "Underground")
                 );
+    }
+
+    @Test
+    public void givenFiveRainyDays_whenGetRainyDays_thenReturnFive() throws Exception {
+        when(service.getRainyDaysAmount()).thenReturn(5);
+
+        mvc.perform(get("/measurements/rainy-days-amount"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", is(5)));
     }
 
     private void givenThreeMeasurementsInDatabase() {
