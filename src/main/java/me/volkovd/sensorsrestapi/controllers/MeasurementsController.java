@@ -50,6 +50,11 @@ public class MeasurementsController {
         return mapper.toListOfDTOs(service.findAll());
     }
 
+    @GetMapping("/rainy-days-amount")
+    public Integer getRainyDaysAmount() {
+        return service.getRainyDaysAmount();
+    }
+
     @ExceptionHandler
     private ResponseEntity<FieldsErrorsResponse> handleException(MeasurementNotAddedException exception) {
         FieldsErrorsResponse response = new FieldsErrorsResponse(
