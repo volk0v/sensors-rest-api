@@ -24,6 +24,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.validation.Errors;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -118,8 +119,11 @@ class MeasurementsControllerTest {
 
     private void givenThreeMeasurementsInDatabase() {
         Measurement measurement1 = new Measurement(24.7f, true, new Sensor("House"));
+        measurement1.setCreatedAt(LocalDate.of(2023, 5, 1).atStartOfDay());
         Measurement measurement2 = new Measurement(-24.7f, false, new Sensor("Street"));
+        measurement2.setCreatedAt(LocalDate.of(2023, 5, 2).atStartOfDay());
         Measurement measurement3 = new Measurement(0f, false, new Sensor("Underground"));
+        measurement3.setCreatedAt(LocalDate.of(2023, 5, 3).atStartOfDay());
 
         doAnswer(onMock -> Arrays.asList(measurement1, measurement2, measurement3))
                 .when(service).findAll();
