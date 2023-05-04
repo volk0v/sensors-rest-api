@@ -7,8 +7,11 @@ import me.volkovd.sensorsrestapi.repositories.MeasurementsRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -20,6 +23,23 @@ public class MeasurementsService {
     public MeasurementsService(MeasurementsRepository measurementRepository, SensorsService sensorsService) {
         this.measurementRepository = measurementRepository;
         this.sensorsService = sensorsService;
+    }
+
+    @Transactional
+    public int getRainyDaysAmount() {
+        List<Measurement> measurements = findAll();
+        Map<LocalDate, Integer> rainyDays = new HashMap<>();
+
+        for (Measurement measurement : measurements) {
+            if (measurement.isRaining()) {
+                LocalDateTime createdAt = measurement.getCreatedAt();
+                LocalDate date = createdAt.toLocalDate();
+
+                rainyDays.put(date, rainyDays.getOrDefault(date, 0) + 1);
+            }
+        }
+
+        return rainyDays.keySet().size();
     }
 
     @Transactional(readOnly = true)
